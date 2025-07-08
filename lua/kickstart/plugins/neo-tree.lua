@@ -11,13 +11,18 @@ return {
   },
   lazy = false,
   keys = {
-    { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+    { '<C-b>', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
   },
   opts = {
     filesystem = {
+      popup_border_style = 'winborder',
       window = {
         mappings = {
-          ['\\'] = 'close_window',
+          ['<C-n>'] = 'close_window',
+        },
+        position = 'float',
+        popup = {
+          size = { height = '75%', width = '65%' },
         },
       },
     },
