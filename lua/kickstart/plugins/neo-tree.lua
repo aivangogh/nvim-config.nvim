@@ -11,7 +11,7 @@ return {
   },
   lazy = false,
   keys = {
-    { '<C-b>', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+    { '<C-b>', ':Neotree reveal<CR>', desc = 'NeoTree reveal' },
   },
   opts = {
     filesystem = {
@@ -22,7 +22,7 @@ return {
         },
         position = 'float',
         popup = {
-          size = { height = '75%', width = '65%' },
+          size = { height = '85%', width = '75%' },
         },
       },
     },

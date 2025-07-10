@@ -179,6 +179,9 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open diagnostic [E]rror window' })
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -223,6 +226,9 @@ vim.keymap.set('n', 'N', 'Nzzzv')
 
 -- Search and replace
 vim.keymap.set('n', '<C-f>', ':%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>')
+
+vim.keymap.set('n', '<A-j>', '<cmd>cnext<CR>')
+vim.keymap.set('n', '<A-k>', '<cmd>cprevious<CR>')
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -445,6 +451,37 @@ require('lazy').setup({
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
+
+      local buffer_searcher = function()
+        builtin.buffers {
+          sort_mru = true,
+          show_all_buffers = false,
+          attach_mappings = function(prompt_bufnr, map)
+            local refresh_buffer_searcher = function()
+              actions.close(prompt_bufnr)
+              vim.schedule(buffer_searcher)
+            end
+            local delete_buf = function()
+              local selection = action_state.get_selected_entry()
+              vim.api.nvim_buf_delete(selection.bufnr, { force = true })
+              refresh_buffer_searcher()
+            end
+            local delete_multiple_buf = function()
+              local picker = action_state.get_current_picker(prompt_bufnr)
+              local selection = picker:get_multi_selection()
+              for _, entry in ipairs(selection) do
+                vim.api.nvim_buf_delete(entry.bufnr, { force = true })
+              end
+              refresh_buffer_searcher()
+            end
+            map('n', 'dd', delete_buf)
+            map('n', '<C-d>', delete_multiple_buf)
+            map('i', '<C-d>', delete_multiple_buf)
+            return true
+          end,
+        }
+      end
+
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
@@ -454,7 +491,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader><leader>', buffer_searcher, { desc = '[ ] Find existing buffers' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -943,6 +980,7 @@ require('lazy').setup({
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
+
       -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
 
